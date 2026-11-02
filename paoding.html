@@ -194,6 +194,7 @@
     .stage-wrap { top: var(--barH, 56px); z-index: 10; background: var(--paper); padding: 6px 0; }
     .bar { gap: 6px 8px; padding: 8px 10px; }
     .bar .hint { display: none; }
+    .sent { scroll-margin-top: calc(var(--stickyH, 0px) + 10px); }
     .bar button, .bar select { font-size: 13px; padding: 5px 10px; }
     .seg button { padding: 5px 9px; }
     .bar label { font-size: 13px; }
@@ -514,16 +515,12 @@ function setActive(i, scroll) {
 const barEl = document.querySelector(".bar");
 const mobileMq = matchMedia("(max-width: 860px)");
 const stageWrapEl = document.querySelector(".stage-wrap");
-// 画面区固定在顶部时，它的下沿位置（控制条高度 + 画面区高度）
-const stickyBottom = () => barEl.offsetHeight + stageWrapEl.offsetHeight;
 function readLine() {
   return mobileMq.matches ? Math.max(stageWrapEl.getBoundingClientRect().bottom, 0) + 24 : innerHeight * 0.45;
 }
 function scrollToSentence(i) {
-  const el = sentEls[i];
-  if (!mobileMq.matches) { el.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
-  const top = el.getBoundingClientRect().top + scrollY - (stickyBottom() + 12);
-  scrollTo({ top, behavior: "smooth" });
+  // 手机上靠 scroll-margin-top 把句子停在固定画面区下面，由浏览器自己算
+  sentEls[i].scrollIntoView({ behavior: "smooth", block: mobileMq.matches ? "start" : "center" });
 }
 
 // 不播放时，滚动到哪句就显示哪句的画面（取阅读线所在的那句）
@@ -661,9 +658,13 @@ document.addEventListener("mouseover", e => {
 window.addEventListener("scroll", () => tip.classList.remove("show"), { passive: true });
 
 // 控制条在手机上会换行变高，画面区要贴在它下面
-const setBarH = () => document.documentElement.style.setProperty("--barH", barEl.offsetHeight + "px");
+const setBarH = () => {
+  const r = document.documentElement.style;
+  r.setProperty("--barH", barEl.offsetHeight + "px");
+  r.setProperty("--stickyH", (barEl.offsetHeight + stageWrapEl.offsetHeight) + "px");
+};
 setBarH(); addEventListener("resize", setBarH);
-if ("ResizeObserver" in window) new ResizeObserver(setBarH).observe(barEl);
+if ("ResizeObserver" in window) { const ro = new ResizeObserver(setBarH); ro.observe(barEl); ro.observe(stageWrapEl); }
 
 setActive(0, false);
 </script>
