@@ -507,16 +507,38 @@ function setActive(i, scroll) {
   active = i;
   sentEls.forEach((e, j) => e.classList.toggle("active", j === i));
   showScene(S[i].sc, S[i].st);
-  if (scroll) sentEls[i].scrollIntoView({ behavior: "smooth", block: "center" });
+  if (scroll) scrollToSentence(i);
 }
 
-// 不播放时，滚动到哪句就显示哪句的画面
-const io = new IntersectionObserver(es => {
-  if (playing) return;
-  const vis = es.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-  if (vis.length) setActive(+vis[0].target.dataset.i, false);
-}, { rootMargin: "-40% 0px -50% 0px" });
-sentEls.forEach(e => io.observe(e));
+// 手机上画面区固定在顶部，文字只能在它下面读；电脑上画面在左边，文字放屏幕中间
+const barEl = document.querySelector(".bar");
+const mobileMq = matchMedia("(max-width: 860px)");
+const stageWrapEl = document.querySelector(".stage-wrap");
+// 画面区固定在顶部时，它的下沿位置（控制条高度 + 画面区高度）
+const stickyBottom = () => barEl.offsetHeight + stageWrapEl.offsetHeight;
+function readLine() {
+  return mobileMq.matches ? Math.max(stageWrapEl.getBoundingClientRect().bottom, 0) + 24 : innerHeight * 0.45;
+}
+function scrollToSentence(i) {
+  const el = sentEls[i];
+  if (!mobileMq.matches) { el.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+  const top = el.getBoundingClientRect().top + scrollY - (stickyBottom() + 12);
+  scrollTo({ top, behavior: "smooth" });
+}
+
+// 不播放时，滚动到哪句就显示哪句的画面（取阅读线所在的那句）
+let scrollTick = false;
+addEventListener("scroll", () => {
+  if (playing || scrollTick) return;
+  scrollTick = true;
+  requestAnimationFrame(() => {
+    scrollTick = false;
+    const y = readLine();
+    let k = sentEls.findIndex(e => e.getBoundingClientRect().bottom > y);
+    if (k < 0) k = sentEls.length - 1;
+    if (k !== active) setActive(k, false);
+  });
+}, { passive: true });
 
 // ---------- 朗读 ----------
 // full：整篇逐句都有音频（audio/<id>/o01.mp3、t01.mp3）；sample：只录了第一段试听
@@ -639,7 +661,6 @@ document.addEventListener("mouseover", e => {
 window.addEventListener("scroll", () => tip.classList.remove("show"), { passive: true });
 
 // 控制条在手机上会换行变高，画面区要贴在它下面
-const barEl = document.querySelector(".bar");
 const setBarH = () => document.documentElement.style.setProperty("--barH", barEl.offsetHeight + "px");
 setBarH(); addEventListener("resize", setBarH);
 if ("ResizeObserver" in window) new ResizeObserver(setBarH).observe(barEl);
