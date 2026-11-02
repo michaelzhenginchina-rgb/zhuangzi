@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>庖丁解牛 · 庄子一则一画</title>
+<style>
+  :root {
+    --paper: #f3ecdf;
+    --paper2: #ebe2d1;
+    --ink: #1d1a17;
+    --ink2: #5a5148;
+    --ink3: #9a8f82;
+    --red: #b23a2a;
+    --gold: #c8962e;
+    --kai: "Kaiti SC", "STKaiti", "KaiTi", "BiauKai", serif;
+    --song: "Songti SC", "STSong", "Noto Serif SC", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--song); }
+  body {
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,0,0,.04), transparent 60%),
+      radial-gradient(ellipse at 100% 100%, rgba(120,80,30,.06), transparent 50%);
+    min-height: 100vh;
+  }
+
+  /* ---------- 顶部 ---------- */
+  header.hero {
+    padding: 56px 24px 32px; text-align: center; position: relative;
+  }
+  .hero .src { color: var(--ink3); letter-spacing: .3em; font-size: 14px; }
+  .hero h1 {
+    font-family: var(--kai); font-weight: normal; font-size: 72px; margin: 10px 0 6px;
+    letter-spacing: .15em;
+  }
+  .hero .seal {
+    display: inline-block; border: 2px solid var(--red); color: var(--red);
+    font-family: var(--kai); padding: 2px 6px; font-size: 14px; border-radius: 3px;
+    transform: rotate(-4deg); margin-left: 6px; vertical-align: middle;
+  }
+  .hero p.lede { color: var(--ink2); max-width: 560px; margin: 12px auto 0; line-height: 1.9; }
+
+  /* ---------- 控制条 ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 20; background: rgba(243,236,223,.92);
+    backdrop-filter: blur(6px); border-bottom: 1px solid rgba(0,0,0,.08);
+    display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap;
+    padding: 10px 16px;
+  }
+  .bar button, .bar select {
+    font-family: var(--song); font-size: 15px; border: 1px solid var(--ink); background: transparent;
+    color: var(--ink); border-radius: 999px; padding: 6px 16px; cursor: pointer;
+  }
+  .bar button.primary { background: var(--ink); color: var(--paper); }
+  .bar button.on { background: var(--ink); color: var(--paper); }
+  .seg { display: inline-flex; border: 1px solid var(--ink); border-radius: 999px; overflow: hidden; }
+  .seg button { border: none; border-radius: 0; padding: 6px 12px; }
+  .bar label { font-size: 14px; color: var(--ink2); display: inline-flex; gap: 6px; align-items: center; }
+  .bar .hint { font-size: 13px; color: var(--ink3); }
+
+  /* ---------- 主体：左画右文 ---------- */
+  main { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 32px;
+         max-width: 1240px; margin: 0 auto; padding: 24px; }
+  .stage-wrap { position: sticky; top: 70px; align-self: start; }
+  .stage {
+    background: var(--paper2); border-radius: 14px; position: relative; overflow: hidden;
+    box-shadow: inset 0 0 60px rgba(90,60,20,.12);
+    aspect-ratio: 5 / 3.4;
+  }
+  .stage svg { width: 100%; height: 100%; display: block; }
+  .caption {
+    margin-top: 14px; font-family: var(--kai); font-size: 24px; text-align: center; min-height: 34px;
+  }
+  .subcaption { text-align: center; color: var(--ink2); font-size: 14px; margin-top: 4px; min-height: 20px; }
+  .stepper { display: flex; justify-content: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .stepper button {
+    font-family: var(--kai); font-size: 15px; background: transparent; border: 1px solid var(--ink3);
+    color: var(--ink2); border-radius: 6px; padding: 4px 10px; cursor: pointer;
+  }
+  .stepper button.on { border-color: var(--red); color: var(--red); }
+
+  .text { padding-bottom: 40vh; }
+  .sent {
+    padding: 14px 16px 14px 18px; border-left: 3px solid transparent; border-radius: 0 10px 10px 0;
+    cursor: pointer; transition: background .25s, border-color .25s; margin-bottom: 4px;
+  }
+  .sent:hover { background: rgba(0,0,0,.03); }
+  .sent.active { background: rgba(178,58,42,.07); border-left-color: var(--red); }
+  .sent .orig { font-family: var(--kai); font-size: 26px; line-height: 2.5; letter-spacing: .04em; }
+  .sent .tr { font-size: 16px; line-height: 1.85; color: var(--ink2); margin-top: 2px; }
+  .sent.speaking-orig .orig { color: var(--red); }
+  .sent.speaking-tr .tr { color: var(--red); }
+  .hide-tr .sent .tr { display: none; }
+  .hide-tr .sent.active .tr { display: block; }
+  ruby rt { font-family: "PingFang SC", -apple-system, sans-serif; font-size: 14px; font-weight: 500; color: #8a3b22; letter-spacing: .02em; padding-bottom: 2px; }
+  .hide-py ruby rt { visibility: hidden; }
+  .w { border-bottom: 1px dotted var(--red); cursor: help; }
+  .para-gap { height: 18px; }
+
+  .tip {
+    position: fixed; z-index: 50; max-width: 260px; background: var(--ink); color: var(--paper);
+    padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.6; pointer-events: none;
+    opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s;
+  }
+  .tip.show { opacity: 1; transform: none; }
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 10px); z-index: 60;
+    background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 999px; font-size: 14px;
+    opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .tip b { font-family: var(--kai); font-size: 18px; font-weight: normal; margin-right: 6px; }
+  .tip i { color: var(--gold); font-style: normal; }
+
+  /* ---------- 结尾 ---------- */
+  section.end { max-width: 1000px; margin: 0 auto; padding: 20px 24px 80px; }
+  section.end h2 { font-family: var(--kai); font-weight: normal; font-size: 34px; text-align: center; margin: 40px 0 8px; }
+  section.end .sub { text-align: center; color: var(--ink2); margin-bottom: 26px; }
+  .big-idea {
+    font-family: var(--kai); font-size: 26px; line-height: 1.8; text-align: center;
+    max-width: 760px; margin: 0 auto; padding: 28px; border-top: 1px solid var(--ink3); border-bottom: 1px solid var(--ink3);
+  }
+  .map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 30px 0 0; }
+  .map div { background: var(--paper2); border-radius: 12px; padding: 18px; text-align: center; }
+  .map b { display: block; font-family: var(--kai); font-size: 30px; font-weight: normal; }
+  .map span { color: var(--ink2); font-size: 15px; }
+  .idioms { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .idiom { border: 1px solid rgba(0,0,0,.12); border-radius: 12px; padding: 16px 18px; background: rgba(255,255,255,.3); }
+  .idiom b { font-family: var(--kai); font-size: 26px; font-weight: normal; }
+  .idiom .py { color: var(--ink3); font-size: 12px; }
+  .idiom p { margin: 6px 0 0; color: var(--ink2); font-size: 14px; line-height: 1.7; }
+  footer { text-align: center; color: var(--ink3); font-size: 12px; padding: 30px; }
+
+  /* ---------- 场景动画 ---------- */
+  .scene { opacity: 0; transition: opacity .6s; pointer-events: none; }
+  .scene.on { opacity: 1; }
+  .ox-fill { fill: var(--ink); transition: fill-opacity .8s, stroke-opacity .8s; }
+  .ox-line { fill: none; stroke: var(--ink); stroke-width: 2; }
+  .struct { stroke: var(--paper); stroke-width: 2.2; fill: none; stroke-dasharray: 6 5; opacity: 0; transition: opacity .8s, stroke .8s; }
+  .joint { fill: none; stroke: var(--paper); stroke-width: 2; opacity: 0; transition: opacity .8s, stroke .8s; }
+  #s3.b .struct, #s3.b .joint { opacity: 1; }
+  #s3.b .ox-fill { fill-opacity: .9; }
+  #s3.c .ox-fill { fill-opacity: .08; }
+  #s3.c .struct { opacity: 1; stroke: var(--gold); stroke-dasharray: none; stroke-width: 3; filter: url(#glow); }
+  #s3.c .joint { opacity: 1; stroke: var(--gold); filter: url(#glow); }
+  #s3.c .eye { opacity: 0; }
+  .eye { transition: opacity .6s; }
+
+  .s3paint, .s6paint { opacity: 0; transition: opacity 1s; }
+  #s3.c .s3paint { opacity: 1; }
+  #s3.c .ox-fill, #s3.c .struct, #s3.c .joint { opacity: 0 !important; }
+  #s6.fall .s6paint { opacity: 1; transition-delay: .6s; }
+  #s6.fall .dust { display: none; }
+  #ground { transition: opacity .6s; }
+  @keyframes ripple { from { r: 4; opacity: .7; } to { r: 46; opacity: 0; } }
+  .rip { fill: none; stroke: var(--gold); stroke-width: 1.5; animation: ripple 2.4s ease-out infinite; }
+  @keyframes floatNote { 0% { transform: translateY(10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
+  .note { font-family: var(--kai); font-size: 22px; fill: var(--ink2); animation: floatNote 3s ease-in-out infinite; }
+  @keyframes knifeDance {
+    0% { offset-distance: 0%; } 100% { offset-distance: 100%; }
+  }
+  .dancing-knife {
+    offset-path: path("M140,180 C200,120 260,250 320,170 S430,120 470,190 S330,260 230,215 S120,230 140,180");
+    animation: knifeDance 5s linear infinite; offset-rotate: auto;
+  }
+
+  @keyframes slide { 0%,10% { transform: translateY(-120px); } 60%,100% { transform: translateY(150px); } }
+  .blade-slide { animation: slide 3.2s cubic-bezier(.5,0,.3,1) infinite; }
+
+  @keyframes pulse { 0%,100% { r: 18; opacity: .9; } 50% { r: 30; opacity: .3; } }
+  .knot { fill: none; stroke: var(--red); stroke-width: 3; animation: pulse 1.6s ease-in-out infinite; }
+  .piece { transition: transform 1.4s cubic-bezier(.6,.05,.4,1); transform-box: view-box; }
+  #s6.fall .knot, #s6.fall .knot-t { display: none; }
+  #s6.fall .p1 { transform: translate(-30px, 30px) rotate(-28deg); }
+  #s6.fall .p2 { transform: translate(-10px, 40px) rotate(18deg); }
+  #s6.fall .p3 { transform: translate(12px, 42px) rotate(-16deg); }
+  #s6.fall .p4 { transform: translate(36px, 28px) rotate(24deg); }
+  .dust { opacity: 0; transition: opacity 1s .9s; }
+  #s6.fall .dust { opacity: 1; }
+
+  @keyframes sheathe { 0%,15% { transform: translateX(-150px); } 65%,100% { transform: translateX(0); } }
+  .sheathing { animation: sheathe 4s ease-in-out infinite alternate; }
+  @keyframes wipe { 0%,100% { transform: translateX(-60px); opacity: 0; } 20% { opacity: .9; } 50% { transform: translateX(80px); opacity: .9; } 60% { opacity: 0; } }
+  .cloth { animation: wipe 4s ease-in-out infinite; }
+  @keyframes look { 0%,100% { opacity: .2; } 50% { opacity: 1; } }
+  .lookarrow { animation: look 2s ease-in-out infinite; }
+
+  @keyframes shine { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
+  .sparkle { animation: shine 1.8s ease-in-out infinite; }
+
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; padding: 12px; }
+    .stage-wrap { top: 56px; z-index: 10; background: var(--paper); padding-bottom: 6px; }
+    .stage { aspect-ratio: 5 / 2.6; }
+    .caption { font-size: 18px; margin-top: 6px; }
+    .subcaption, .stepper { display: none; }
+    .hero h1 { font-size: 52px; }
+    .sent .orig { font-size: 21px; }
+    .map { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="src">庄子 · 内篇 · 养生主</div>
+  <h1>庖丁解牛<span class="seal">一则一画</span></h1>
+  <p class="lede">一个厨师宰了十九年牛，刀还像新的。秘诀不是刀快，而是他看见了别人看不见的——缝。</p>
+</header>
+
+<div class="bar">
+  <button class="primary" id="playBtn">▶ 从头朗读</button>
+  <div class="seg" id="modeSeg">
+    <button data-mode="orig">读原文</button>
+    <button data-mode="tr">读白话</button>
+    <button data-mode="both" class="on">原文+白话</button>
+  </div>
+  <label>声音 <select id="voiceSel"></select></label>
+  <label><input type="checkbox" id="pyChk" checked> 注音</label>
+  <label><input type="checkbox" id="trChk" checked> 显示白话</label>
+  <span class="hint">点任意一句：跳到那句并朗读 · 虚线词可悬停看解释</span>
+</div>
+
+<main>
+  <div class="stage-wrap">
+    <div class="stage">
+      <svg viewBox="0 0 600 400" id="svg">
+        <defs>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="brush">
+            <feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="5"/>
+          </filter>
+          <path id="ox" d="M110,145 C150,120 300,112 400,118 C430,120 455,130 480,140 L498,138 C505,120 515,105 530,93 C524,112 518,128 514,142 C532,152 546,176 549,200 C550,213 536,221 520,217 C500,212 482,206 466,206 C458,226 448,241 438,251 L441,318 L424,321 L418,262 L401,262 L399,318 L383,321 L378,258 C320,266 262,266 216,258 L213,318 L197,321 L190,262 L176,260 L173,318 L157,321 L150,250 C126,236 112,200 110,145 Z"/>
+          <clipPath id="c1"><rect x="90" y="80" width="126" height="260"/></clipPath>
+          <clipPath id="c2"><rect x="216" y="80" width="86" height="260"/></clipPath>
+          <clipPath id="c3"><rect x="302" y="80" width="80" height="260"/></clipPath>
+          <clipPath id="c4"><rect x="382" y="80" width="180" height="260"/></clipPath>
+          <symbol id="knife" viewBox="-30 -8 60 16" overflow="visible">
+            <path d="M-28,-3 L-6,-3 L-6,3 L-28,3 Z" fill="#6b3f22"/>
+            <path d="M-6,-5 L22,-5 C28,-4 30,0 28,4 L-6,4 Z" fill="#d9d4cb" stroke="#1d1a17" stroke-width="1"/>
+          </symbol>
+        </defs>
+
+        <!-- 地面 -->
+        <path id="ground" d="M40,330 C200,326 400,334 560,328" stroke="#1d1a17" stroke-width="2" fill="none" opacity=".35" filter="url(#brush)"/>
+
+        <!-- 1 解牛如舞 -->
+        <g class="scene" id="s1">
+          <image class="paint" href="img/flow/cover_dance_1.jpg" x="0" y="0" width="600" height="400" preserveAspectRatio="xMidYMid slice"/>
+        </g>
+
+        <!-- 2 技 → 道 -->
+        <g class="scene" id="s2">
+          <text x="170" y="250" font-family="Kaiti SC, STKaiti, serif" font-size="150" fill="#9a8f82" text-anchor="middle">技</text>
+          <path d="M260,205 L330,205" stroke="#1d1a17" stroke-width="3"/>
+          <path d="M322,195 L340,205 L322,215" fill="none" stroke="#1d1a17" stroke-width="3"/>
+          <text x="300" y="185" font-family="Songti SC, serif" font-size="16" fill="#5a5148" text-anchor="middle">进乎技</text>
+          <circle cx="430" cy="200" r="95" fill="none" stroke="#b23a2a" stroke-width="3" filter="url(#brush)"/>
+          <text x="430" y="252" font-family="Kaiti SC, STKaiti, serif" font-size="150" fill="#1d1a17" text-anchor="middle">道</text>
+          <text x="170" y="320" font-family="Songti SC, serif" font-size="15" fill="#5a5148" text-anchor="middle">手艺：怎么切</text>
+          <text x="430" y="330" font-family="Songti SC, serif" font-size="15" fill="#5a5148" text-anchor="middle">道：牛本来是怎么长的</text>
+        </g>
+
+        <!-- 3 三重眼光 -->
+        <g class="scene" id="s3">
+          <use href="#ox" class="ox-fill"/>
+          <g>
+            <path class="struct" d="M118,150 C200,132 330,128 470,145"/>
+            <path class="struct" d="M215,128 C210,170 212,215 216,258"/>
+            <path class="struct" d="M300,122 C296,170 298,220 302,264"/>
+            <path class="struct" d="M385,120 C380,165 380,215 380,258"/>
+            <path class="struct" d="M458,135 C452,165 452,190 466,206"/>
+            <path class="struct" d="M150,250 C168,232 190,236 216,258"/>
+            <path class="struct" d="M118,190 C150,200 190,200 215,195"/>
+            <path class="struct" d="M300,200 C330,205 360,205 380,200"/>
+            <circle class="joint" cx="170" cy="188" r="15"/>
+            <circle class="joint" cx="410" cy="200" r="14"/>
+            <circle class="joint" cx="166" cy="290" r="9"/>
+            <circle class="joint" cx="430" cy="290" r="9"/>
+            <circle class="joint" cx="470" cy="168" r="10"/>
+          </g>
+          <image class="paint s3paint" href="img/flow/no_whole_ox_1.jpg" x="0" y="0" width="600" height="400" preserveAspectRatio="xMidYMid slice"/>
+          <g class="eye" transform="translate(300,60)">
+            <path d="M-26,0 Q0,-18 26,0 Q0,18 -26,0 Z" fill="none" stroke="#1d1a17" stroke-width="2"/>
+            <circle r="6" fill="#1d1a17"/>
+          </g>
+        </g>
+
+        <!-- 4 以无厚入有间 -->
+        <g class="scene" id="s4">
+          <image class="paint" href="img/flow/blade_gap_1.jpg" x="0" y="0" width="600" height="400" preserveAspectRatio="xMidYMid slice"/>
+        </g>
+
+        <!-- 5 三把刀 -->
+        <g class="scene" id="s5">
+          <g transform="translate(60,70)">
+            <text x="0" y="0" font-family="Kaiti SC, STKaiti, serif" font-size="22">良庖</text>
+            <text x="70" y="0" font-family="Songti SC, serif" font-size="14" fill="#5a5148">一年换一把 · 割肉</text>
+            <path d="M0,22 L360,22 L360,52 L0,52 Z" fill="#6b3f22" transform="translate(-70,0) scale(.2,1) translate(350,0)"/>
+            <path d="M0,20 L380,20 C410,22 420,36 410,50 L0,50 Z" fill="#d9d4cb" stroke="#1d1a17"/>
+            <path d="M60,50 l6,-4 l6,4 M150,50 l5,-3 l5,3 M260,50 l6,-4 l6,4 M340,50 l5,-3 l5,3" stroke="#1d1a17" fill="#f3ecdf"/>
+          </g>
+          <g transform="translate(60,170)">
+            <text x="0" y="0" font-family="Kaiti SC, STKaiti, serif" font-size="22">族庖</text>
+            <text x="70" y="0" font-family="Songti SC, serif" font-size="14" fill="#5a5148">一个月换一把 · 砍骨头</text>
+            <path d="M0,20 L330,20 L345,30 L355,26 L350,50 L0,50 Z" fill="#cfc8bd" stroke="#1d1a17"/>
+            <path d="M40,50 l10,-10 l10,10 M110,50 l12,-14 l12,14 M200,50 l9,-9 l9,9 M270,50 l14,-16 l14,16" stroke="#1d1a17" fill="#f3ecdf"/>
+            <path d="M372,30 l18,6 l-8,12 z" fill="#cfc8bd" stroke="#1d1a17"/>
+          </g>
+          <g transform="translate(60,270)">
+            <text x="0" y="0" font-family="Kaiti SC, STKaiti, serif" font-size="22" fill="#b23a2a">庖丁</text>
+            <text x="70" y="0" font-family="Songti SC, serif" font-size="14" fill="#5a5148">十九年 · 数千头牛 · 刃若新发于硎</text>
+            <path d="M0,20 L380,20 C410,22 420,36 410,50 L0,50 Z" fill="#eeeae3" stroke="#1d1a17"/>
+            <path d="M20,47 L400,47" stroke="#fff" stroke-width="2"/>
+            <g class="sparkle"><path d="M330,30 l4,-12 l4,12 l12,4 l-12,4 l-4,12 l-4,-12 l-12,-4 z" fill="#c8962e"/></g>
+            <g class="sparkle" style="animation-delay:.9s"><path d="M160,26 l3,-9 l3,9 l9,3 l-9,3 l-3,9 l-3,-9 l-9,-3 z" fill="#c8962e"/></g>
+          </g>
+        </g>
+
+        <!-- 6 难处放慢 → 如土委地 -->
+        <g class="scene" id="s6">
+          <g class="piece p1" style="transform-origin:153px 300px"><use href="#ox" class="ox-fill" clip-path="url(#c1)"/></g>
+          <g class="piece p2" style="transform-origin:259px 300px"><use href="#ox" class="ox-fill" clip-path="url(#c2)"/></g>
+          <g class="piece p3" style="transform-origin:342px 300px"><use href="#ox" class="ox-fill" clip-path="url(#c3)"/></g>
+          <g class="piece p4" style="transform-origin:472px 300px"><use href="#ox" class="ox-fill" clip-path="url(#c4)"/></g>
+          <image class="paint s6paint" href="img/flow/satisfied_1.jpg" x="0" y="0" width="600" height="400" preserveAspectRatio="xMidYMid slice"/>
+          <circle class="knot" cx="410" cy="200" r="18"/>
+          <text class="knot-t" x="410" y="160" font-family="Kaiti SC, STKaiti, serif" font-size="20" fill="#b23a2a" text-anchor="middle">族</text>
+          <g class="dust" fill="#9a8f82">
+            <circle cx="150" cy="335" r="3"/><circle cx="210" cy="338" r="2"/><circle cx="290" cy="336" r="3"/>
+            <circle cx="360" cy="339" r="2"/><circle cx="440" cy="335" r="3"/><circle cx="500" cy="338" r="2"/>
+            <text x="300" y="380" font-family="Kaiti SC, STKaiti, serif" font-size="20" fill="#5a5148" text-anchor="middle">謋然已解，如土委地</text>
+          </g>
+        </g>
+
+        <!-- 7 善刀而藏之 -->
+        <g class="scene" id="s7">
+          <image class="paint" href="img/flow/satisfied_2.jpg" x="0" y="0" width="600" height="400" preserveAspectRatio="xMidYMid slice"/>
+        </g>
+
+        <!-- 8 养生 -->
+        <g class="scene" id="s8" font-family="Kaiti SC, STKaiti, serif" text-anchor="middle">
+          <text x="120" y="120" font-size="64">刀</text>
+          <text x="120" y="160" font-size="18" fill="#5a5148">= 你自己</text>
+          <text x="300" y="120" font-size="64">牛</text>
+          <text x="300" y="160" font-size="18" fill="#5a5148">= 复杂的世界</text>
+          <text x="480" y="120" font-size="64" fill="#b23a2a">缝</text>
+          <text x="480" y="160" font-size="18" fill="#5a5148">= 顺势的地方</text>
+          <path d="M80,200 L520,200" stroke="#9a8f82"/>
+          <text x="300" y="255" font-size="26">不硬碰，就不磨损</text>
+          <text x="300" y="300" font-size="26">顺着纹理走，十九年如新</text>
+          <circle cx="300" cy="350" r="22" fill="none" stroke="#b23a2a" stroke-width="2"/>
+          <text x="300" y="359" font-size="24" fill="#b23a2a">生</text>
+        </g>
+      </svg>
+    </div>
+    <div class="caption" id="caption"></div>
+    <div class="subcaption" id="subcaption"></div>
+    <div class="stepper" id="stepper"></div>
+  </div>
+
+  <div class="text" id="text"></div>
+</main>
+
+<section class="end">
+  <h2>一句话读懂</h2>
+  <div class="sub">庄子把这个故事放在《养生主》——讲的不是宰牛，是怎么活</div>
+  <div class="big-idea">
+    别拿自己去硬磕世界的骨头。<br>先看清它的结构，找到缝，顺着走；<br>到了难处就放慢、专注。这样过一辈子，人也像那把刀，十九年如新。
+  </div>
+
+  <h2>从这个故事里走出来的成语</h2>
+  <div class="sub">你每天都在用的词，原来都出自这一段</div>
+  <div class="idioms">
+    <div class="idiom"><b>游刃有余</b> <span class="py">yóu rèn yǒu yú</span><p>刀在缝里转得宽宽绰绰。比喻做事熟练，轻松应付还有余力。</p></div>
+    <div class="idiom"><b>目无全牛</b> <span class="py">mù wú quán niú</span><p>眼里看不到整头牛，只看到结构。比喻技艺纯熟到看透事物内部。</p></div>
+    <div class="idiom"><b>切中肯綮</b> <span class="py">qiè zhòng kěn qìng</span><p>肯綮是筋骨结合的要害处。比喻说话、做事正好说到点子上。</p></div>
+    <div class="idiom"><b>批郤导窾</b> <span class="py">pī xì dǎo kuǎn</span><p>劈开缝隙，顺着空处进刀。比喻抓住关键，顺势解决问题。</p></div>
+    <div class="idiom"><b>踌躇满志</b> <span class="py">chóu chú mǎn zhì</span><p>完成之后从容自得、心满意足的样子。</p></div>
+    <div class="idiom"><b>新发于硎</b> <span class="py">xīn fā yú xíng</span><p>像刚从磨刀石上磨出来。比喻锋利如新、保持得好。</p></div>
+    <div class="idiom"><b>官止神行</b> <span class="py">guān zhǐ shén xíng</span><p>感官停下，心神在走。形容做事进入忘我的状态。</p></div>
+  </div>
+</section>
+
+<footer>原文：《庄子·养生主》（公版） · 白话翻译为本站原创样稿 · 插画由 Google Flow 生成 · 朗读：Fish Audio「沉稳诗词朗诵」</footer>
+
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// {字|拼音|解释} 会变成带注音、可悬停的词
+const S = [
+  { o: "{庖丁|páo dīng|名叫丁的厨师。庖：厨房、厨师}为文惠君解牛，", r: "庖丁为文惠君解牛，",
+    t: "有个名叫丁的厨师，给文惠君宰牛。", sc: 1 },
+  { o: "手之所触，肩之所{倚|yǐ|靠}，足之所{履|lǚ|踩}，膝之所{踦|yǐ|用膝盖顶住}，", r: "手之所触，肩之所倚，足之所履，膝之所以，",
+    t: "手碰的地方、肩靠的地方、脚踩的地方、膝盖顶的地方，", sc: 1 },
+  { o: "{砉然|huā rán|皮骨分离的声音}{向然|xiǎng rán|同“响然”，发出声响}，{奏刀|zòu dāo|进刀}{騞然|huō rán|进刀时的声音}，莫不{中|zhòng|合乎}音。", r: "哗然响然，奏刀豁然，莫不众音。",
+    t: "皮骨分开，哗哗作响；刀一进去，嚯嚯有声——没有一声不合音律。", sc: 1 },
+  { o: "合于{《桑林》|sāng lín|商汤时的乐舞}之舞，乃中{《经首》|jīng shǒu|尧时乐曲《咸池》中的一章}之{会|huì|节奏}。", r: "合于桑林之舞，乃众经首之会。",
+    t: "动作合得上《桑林》舞的步伐，声音对得上《经首》曲的节奏。", sc: 1, gap: true },
+
+  { o: "文惠君曰：“{嘻|xī|赞叹声}，善哉！技{盖|hé|同“盍”，怎么}至此乎？”", r: "文惠君曰：嘻，善哉！技何至此乎？",
+    t: "文惠君说：“啊，太好了！手艺怎么能高到这种地步？”", sc: 2, gap: true },
+  { o: "庖丁{释|shì|放下}刀对曰：“臣之所好者道也，{进|jìn|超过}乎技矣。", r: "庖丁释刀对曰：臣之所好者道也，进乎技矣。",
+    t: "庖丁放下刀回答：“我追求的是‘道’，这已经超过手艺了。", sc: 2 },
+
+  { o: "始臣之解牛之时，所见无非牛者。", r: "始臣之解牛之时，所见无非牛者。",
+    t: "我刚开始宰牛的时候，眼里看到的就是一整头牛。", sc: 3, st: "a" },
+  { o: "三年之后，未尝见全牛也。", r: "三年之后，未尝见全牛也。",
+    t: "三年以后，我眼里再也没有一整头牛了——只看见它的骨架、关节和缝。", sc: 3, st: "b" },
+  { o: "方今之时，臣以{神遇|shén yù|用心神去接触}而不以目视，{官知止|guān zhī zhǐ|感官的作用停下来}而{神欲行|shén yù xíng|心神在运行}。", r: "方今之时，臣以神遇而不以目视，官知止而神欲行。",
+    t: "到现在，我用心神去碰它，不用眼睛看；感官都停了，只有心神在走。", sc: 3, st: "c" },
+  { o: "依乎{天理|tiān lǐ|牛身体天然的纹理}，{批|pī|劈开}大{郤|xì|空隙}，{导|dǎo|引刀进入}大{窾|kuǎn|骨节间的空处}，{因|yīn|顺着}其{固然|gù rán|本来的样子}，", r: "依乎天理，批大隙，导大款，因其固然，",
+    t: "我顺着牛天然的纹理，劈开筋骨间的大缝，刀往骨节间的空处走，完全依着它本来的构造，", sc: 4 },
+  { o: "{技经|zhī jīng|“技”应作“枝”，经络相连的地方}{肯綮|kěn qìng|骨肉紧密结合处}之未尝，而况大{軱|gū|大骨头}乎！", r: "枝经肯庆之未尝，而况大孤乎！",
+    t: "连经络相连、骨肉盘结的地方都没碰过，更别说大骨头了！", sc: 4, gap: true },
+  { o: "良庖岁{更|gēng|更换}刀，割也；{族庖|zú páo|一般的厨师。族：众}月更刀，{折|zhé|用刀砍骨头}也。", r: "良庖岁耕刀，割也；族庖月耕刀，折也。",
+    t: "好厨师一年换一把刀，因为他是用刀割肉；普通厨师一个月换一把刀，因为他是拿刀砍骨头。", sc: 5 },
+  { o: "今臣之刀十九年矣，所解数千牛矣，而刀刃若新{发于硎|fā yú xíng|刚从磨刀石上磨出来。硎：磨刀石}。", r: "今臣之刀十九年矣，所解数千牛矣，而刀刃若新发于形。",
+    t: "我这把刀用了十九年，宰过几千头牛，刀刃还像刚从磨刀石上磨出来一样。", sc: 5 },
+  { o: "彼{节|jié|骨节}者有{间|jiàn|缝隙}，而刀刃者无厚；", r: "彼节者有见，而刀刃者无厚；",
+    t: "牛的骨节之间是有缝的，而刀刃薄得几乎没有厚度；", sc: 4 },
+  { o: "以无厚入有间，{恢恢乎|huī huī hū|宽宽绰绰的样子}其于{游刃|yóu rèn|运转刀刃}必有余地矣，", r: "以无厚入有见，恢恢乎其于游刃必有余地矣，",
+    t: "拿没有厚度的刀刃插进有缝的骨节，宽宽绰绰，刀在里面转都还有空余，", sc: 4 },
+  { o: "是以十九年而刀刃若新发于硎。", r: "是以十九年而刀刃若新发于形。",
+    t: "所以用了十九年，刀刃还像刚磨出来的一样。", sc: 5, gap: true },
+  { o: "虽然，每至于{族|zú|筋骨交错聚结的地方}，吾见其难为，{怵然|chù rán|警惕小心的样子}为戒，视为止，行为迟。", r: "虽然，每至于族，吾见其难为，触然为戒，视为止，行为迟。",
+    t: "即便这样，每次碰到筋骨盘结、难下刀的地方，我看出不好办，就提起警惕：目光盯住那一点，动作慢下来。", sc: 6, st: "a" },
+  { o: "动刀甚微，{謋然|huò rán|骨肉分离的声音}已解，如土{委地|wěi dì|散落在地上}。", r: "动刀甚微，或然已解，如土委地。",
+    t: "刀轻轻一动——哗啦一声，整头牛已经散开，像一堆泥土落在地上。", sc: 6, st: "fall" },
+  { o: "提刀而立，为之四顾，为之{踌躇满志|chóu chú mǎn zhì|从容自得、心满意足}，{善|shàn|擦拭}刀而藏之。”", r: "提刀而立，为之四顾，为之踌躇满志，善刀而藏之。",
+    t: "我提着刀站起来，四下看看，心满意足，然后把刀擦干净收好。”", sc: 7, gap: true },
+  { o: "文惠君曰：“善哉！吾闻庖丁之言，得{养生|yǎng shēng|保养生命的道理}焉。”", r: "文惠君曰：善哉！吾闻庖丁之言，得养生焉。",
+    t: "文惠君说：“好啊！听了庖丁这番话，我懂得了怎么养生。”", sc: 8 },
+];
+
+const CAP = {
+  1: ["解牛如舞", "每一刀都踩在节拍上，像在跳舞奏乐"],
+  2: ["从“技”到“道”", "手艺是“怎么切”；道是看懂“牛本来是怎么长的”"],
+  3: ["三种眼光看同一头牛", ""],
+  4: ["以无厚入有间", "刀从缝里走，碰不到骨头，所以不会钝"],
+  5: ["三把刀，三种活法", "割肉的一年一换，砍骨头的一月一换，走缝的十九年如新"],
+  6: ["难处放慢，然后——散了", ""],
+  7: ["提刀而立，善刀而藏", ""],
+  8: ["这和“养生”有什么关系？", "庄子借宰牛，讲怎么过一辈子"],
+};
+const S3 = { a: ["初：所见无非牛", "眼里是一整块硬东西，无从下手"],
+             b: ["三年：未尝见全牛", "看见骨架、关节、缝——牛“拆开”了"],
+             c: ["今：以神遇不以目视", "牛几乎消失，只剩发光的缝。闭着眼都知道刀往哪走"] };
+const S6 = { a: ["每至于族，怵然为戒", "碰到盘结处（红圈），盯住、放慢"], fall: ["謋然已解，如土委地", "轻轻一动，整头牛自己散开"] };
+
+// ---------- 渲染文本 ----------
+const textEl = document.getElementById("text");
+function markup(s) {
+  return s.replace(/\{([^|}]+)\|([^|}]+)\|([^}]+)\}/g, (_, w, py, g) =>
+    `<span class="w" data-w="${w}" data-py="${py}" data-g="${g}"><ruby>${w}<rt>${py}</rt></ruby></span>`);
+}
+S.forEach((s, i) => {
+  const d = document.createElement("div");
+  d.className = "sent"; d.dataset.i = i;
+  d.innerHTML = `<div class="orig">${markup(s.o)}</div><div class="tr">${s.t}</div>`;
+  d.addEventListener("click", () => { stopAll(); setActive(i, true); speakFrom(i, true); });
+  textEl.appendChild(d);
+  if (s.gap) { const g = document.createElement("div"); g.className = "para-gap"; textEl.appendChild(g); }
+});
+const sentEls = [...document.querySelectorAll(".sent")];
+
+// ---------- 场景 ----------
+const scenes = [...document.querySelectorAll(".scene")];
+const capEl = document.getElementById("caption"), subEl = document.getElementById("subcaption");
+const stepper = document.getElementById("stepper");
+function showScene(n, st) {
+  scenes.forEach(g => g.classList.toggle("on", g.id === "s" + n));
+  let [c, sub] = CAP[n];
+  const s3 = document.getElementById("s3"), s6 = document.getElementById("s6");
+  s3.classList.remove("b", "c"); s6.classList.remove("fall");
+  if (n === 3) { st = st || "a"; if (st !== "a") s3.classList.add(st); [c, sub] = S3[st]; }
+  if (n === 6) { st = st || "a"; if (st === "fall") s6.classList.add("fall"); [c, sub] = S6[st]; }
+  capEl.textContent = c; subEl.textContent = sub;
+  const oxShown = (n === 3 && st !== "c") || (n === 6 && st !== "fall");
+  document.getElementById("ground").style.opacity = oxShown ? .35 : 0;
+  stepper.innerHTML = "";
+  if (n === 3) for (const k of ["a", "b", "c"]) {
+    const b = document.createElement("button"); b.textContent = S3[k][0];
+    if (k === st) b.classList.add("on");
+    b.onclick = () => showScene(3, k); stepper.appendChild(b);
+  }
+  if (n === 6) for (const k of ["a", "fall"]) {
+    const b = document.createElement("button"); b.textContent = k === "a" ? "盘结处" : "散开";
+    if (k === st) b.classList.add("on");
+    b.onclick = () => showScene(6, k); stepper.appendChild(b);
+  }
+}
+
+let active = -1;
+function setActive(i, scroll) {
+  active = i;
+  sentEls.forEach((e, j) => e.classList.toggle("active", j === i));
+  showScene(S[i].sc, S[i].st);
+  if (scroll) sentEls[i].scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// 不播放时，滚动到哪句就显示哪句的画面
+const io = new IntersectionObserver(es => {
+  if (playing) return;
+  const vis = es.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+  if (vis.length) setActive(+vis[0].target.dataset.i, false);
+}, { rootMargin: "-40% 0px -50% 0px" });
+sentEls.forEach(e => io.observe(e));
+
+// ---------- 朗读 ----------
+// full：整篇逐句都有音频（audio/<id>/o01.mp3、t01.mp3）；sample：只录了第一段试听
+const VOICES = [
+  { id: "04", name: "沉稳诗词朗诵", full: true },
+  { id: "01", name: "周涛·纪录片女声", sample: { o: "audio/samples/01_o.mp3", t: "audio/samples/01_t.mp3" } },
+  { id: "02", name: "纪录片男声", sample: { o: "audio/samples/02_o.mp3", t: "audio/samples/02_t.mp3" } },
+  { id: "03", name: "浑厚男声", sample: { o: "audio/samples/03_o.mp3" } },
+  { id: "05", name: "故宫纪录片女声", sample: { o: "audio/samples/05_o.mp3" } },
+  { id: "tts", name: "浏览器语音" },
+];
+const SAMPLE_END = 3; // 试听只覆盖第 1–4 句（第一段）
+let cur = VOICES[0];
+let mode = "both", playing = false, ttsVoice = null, token = 0;
+const audio = new Audio();
+
+function pickTts() {
+  const vs = speechSynthesis.getVoices().filter(v => /zh[-_](CN|Hans)/i.test(v.lang) || v.lang === "zh");
+  ttsVoice = vs.find(v => /Tingting|婷婷|Xiaoxiao|Yu-shu|Lili/i.test(v.name)) || vs[0] || null;
+}
+pickTts(); speechSynthesis.onvoiceschanged = pickTts;
+
+function say(text, rate) {
+  return new Promise(res => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN"; if (ttsVoice) u.voice = ttsVoice; u.rate = rate;
+    u.onend = res; u.onerror = res;
+    speechSynthesis.speak(u);
+  });
+}
+function playClip(url) {
+  return new Promise(res => {
+    audio.onended = () => res(true);
+    audio.onerror = () => res(false);
+    audio.src = url;
+    audio.play().catch(() => res(false));
+  });
+}
+// 有音频就放音频，没有（还没生成）就退回浏览器语音
+async function read(k, kind) {
+  const n = String(k + 1).padStart(2, "0");
+  if (cur.full && await playClip(`audio/${cur.id}/${kind}${n}.mp3`)) return;
+  if (kind === "o") await say(S[k].r, .8); else await say(S[k].t.replace(/[“”]/g, ""), 1);
+}
+
+const toastEl = document.getElementById("toast");
+let toastTimer;
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove("show"), 3200);
+}
+
+async function playSample(i) {
+  const my = ++token;
+  if (i > SAMPLE_END) { toast(`「${cur.name}」只录了第一段试听，整篇还没生成`); return; }
+  playing = true; updateBtn();
+  setActive(0, true);
+  const els = sentEls.slice(0, SAMPLE_END + 1);
+  if (mode !== "tr") {
+    els.forEach(e => e.classList.add("speaking-orig")); await playClip(cur.sample.o);
+    els.forEach(e => e.classList.remove("speaking-orig"));
+  }
+  if (my === token && mode !== "orig") {
+    if (cur.sample.t) {
+      els.forEach(e => e.classList.add("speaking-tr")); await playClip(cur.sample.t);
+      els.forEach(e => e.classList.remove("speaking-tr"));
+    } else toast(`「${cur.name}」没录白话试听`);
+  }
+  if (my === token) { playing = false; updateBtn(); toast("试听到这里结束。整篇只有默认声音"); }
+}
+
+async function speakFrom(i, single) {
+  if (cur.sample) return playSample(i);
+  const my = ++token; playing = true; updateBtn();
+  for (let k = i; k < S.length; k++) {
+    if (my !== token) return;
+    setActive(k, true);
+    const el = sentEls[k];
+    if (mode !== "tr") { el.classList.add("speaking-orig"); await read(k, "o"); el.classList.remove("speaking-orig"); }
+    if (my !== token) return;
+    if (mode !== "orig") { el.classList.add("speaking-tr"); await read(k, "t"); el.classList.remove("speaking-tr"); }
+    if (single) break;
+  }
+  if (my === token) { playing = false; updateBtn(); }
+}
+function stopAll() {
+  token++; speechSynthesis.cancel(); audio.pause(); audio.onended = audio.onerror = null;
+  playing = false;
+  sentEls.forEach(e => e.classList.remove("speaking-orig", "speaking-tr")); updateBtn();
+}
+const playBtn = document.getElementById("playBtn");
+function updateBtn() { playBtn.textContent = playing ? "■ 停止" : "▶ 从头朗读"; }
+playBtn.onclick = () => { if (playing) stopAll(); else { stopAll(); speakFrom(0, false); } };
+
+const voiceSel = document.getElementById("voiceSel");
+voiceSel.innerHTML = VOICES.map(v =>
+  `<option value="${v.id}">${v.name}${v.full ? "（默认）" : v.sample ? "（仅试听）" : ""}</option>`).join("");
+voiceSel.onchange = () => {
+  stopAll(); cur = VOICES.find(v => v.id === voiceSel.value);
+  if (cur.sample) toast(`「${cur.name}」只录了第一段，点播放听试听`);
+};
+
+document.querySelectorAll("#modeSeg button").forEach(b => b.onclick = () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll("#modeSeg button").forEach(x => x.classList.toggle("on", x === b));
+});
+document.getElementById("pyChk").onchange = e => document.body.classList.toggle("hide-py", !e.target.checked);
+document.getElementById("trChk").onchange = e => document.body.classList.toggle("hide-tr", !e.target.checked);
+
+// ---------- 词语解释浮窗 ----------
+const tip = document.getElementById("tip");
+document.addEventListener("mouseover", e => {
+  const w = e.target.closest(".w"); if (!w) { tip.classList.remove("show"); return; }
+  tip.innerHTML = `<b>${w.dataset.w}</b><i>${w.dataset.py}</i><br>${w.dataset.g}`;
+  const r = w.getBoundingClientRect();
+  tip.style.left = Math.min(r.left, innerWidth - 280) + "px";
+  tip.style.top = (r.bottom + 8) + "px";
+  tip.classList.add("show");
+});
+window.addEventListener("scroll", () => tip.classList.remove("show"), { passive: true });
+
+setActive(0, false);
+</script>
+</body>
+</html>
