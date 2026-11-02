@@ -22,22 +22,37 @@ function bindToggles() {
   py.onchange = tr.onchange = apply; apply();
 }
 
-// 点（或触摸）带虚线的词，弹出解释；点别处关掉
+// 带虚线的词：电脑上鼠标移上去就显示、移开就消失，点一下可固定；手机上点一下显示，再点或点别处关掉
 function bindGloss() {
   const box = document.getElementById("gloss");
-  let cur = null;
-  const hide = () => { box.classList.remove("show"); cur?.classList.remove("on"); cur = null; };
-  document.addEventListener("click", e => {
-    const w = e.target.closest(".w");
-    if (!w) { if (!e.target.closest(".gloss")) hide(); return; }
-    e.stopPropagation();
-    if (cur === w) { hide(); return; }
+  const canHover = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  let cur = null, pinned = false;
+  const show = w => {
     cur?.classList.remove("on"); cur = w; w.classList.add("on");
     box.innerHTML = `<b>${w.dataset.w}</b>${w.dataset.py ? `<i>${w.dataset.py}</i>` : ""}<br>${w.dataset.g}`;
     const r = w.getBoundingClientRect();
     box.style.left = Math.max(8, Math.min(r.left, innerWidth - 310)) + "px";
     box.style.top = (r.bottom + 8) + "px";
     box.classList.add("show");
+  };
+  const hide = () => { box.classList.remove("show"); cur?.classList.remove("on"); cur = null; pinned = false; };
+
+  if (canHover) {
+    document.addEventListener("mouseover", e => {
+      const w = e.target.closest(".w");
+      if (w && !pinned) show(w);
+    });
+    document.addEventListener("mouseout", e => {
+      const w = e.target.closest(".w");
+      if (w && !pinned && !w.contains(e.relatedTarget)) hide();
+    });
+  }
+  document.addEventListener("click", e => {
+    const w = e.target.closest(".w");
+    if (!w) { if (!e.target.closest(".gloss")) hide(); return; }
+    e.stopPropagation();
+    if (cur === w && (pinned || !canHover)) { hide(); return; }
+    show(w); pinned = true;
   });
-  addEventListener("scroll", () => { if (innerWidth > 600) hide(); }, { passive: true });
+  addEventListener("scroll", () => { if (canHover) hide(); }, { passive: true });
 }

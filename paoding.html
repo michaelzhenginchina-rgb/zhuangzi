@@ -205,6 +205,7 @@
     .hero h1 { font-size: 52px; }
     .sent .orig { font-size: 21px; }
     .map { grid-template-columns: 1fr; }
+    .tip { left: 12px !important; right: 12px; top: auto !important; bottom: 16px; max-width: none; font-size: 16px; padding: 14px 18px; }
   }
 </style>
 </head>
@@ -648,16 +649,30 @@ document.getElementById("pyChk").onchange = e => document.body.classList.toggle(
 document.getElementById("trChk").onchange = e => document.body.classList.toggle("hide-tr", !e.target.checked);
 
 // ---------- 词语解释浮窗 ----------
+// 电脑：鼠标移上去就显示；手机：点词只弹解释（不触发整句朗读），点别处关掉
 const tip = document.getElementById("tip");
-document.addEventListener("mouseover", e => {
-  const w = e.target.closest(".w"); if (!w) { tip.classList.remove("show"); return; }
+const canHover = matchMedia("(hover: hover) and (pointer: fine)").matches;
+function showTip(w) {
   tip.innerHTML = `<b>${w.dataset.w}</b><i>${w.dataset.py}</i><br>${w.dataset.g}`;
   const r = w.getBoundingClientRect();
   tip.style.left = Math.min(r.left, innerWidth - 280) + "px";
   tip.style.top = (r.bottom + 8) + "px";
   tip.classList.add("show");
-});
-window.addEventListener("scroll", () => tip.classList.remove("show"), { passive: true });
+}
+if (canHover) {
+  document.addEventListener("mouseover", e => {
+    const w = e.target.closest(".w"); if (!w) { tip.classList.remove("show"); return; }
+    showTip(w);
+  });
+  window.addEventListener("scroll", () => tip.classList.remove("show"), { passive: true });
+} else {
+  document.addEventListener("click", e => {
+    const w = e.target.closest(".w");
+    if (!w) { tip.classList.remove("show"); return; }
+    e.stopPropagation(); e.preventDefault();
+    showTip(w);
+  }, true);
+}
 
 // 控制条在手机上会换行变高，画面区要贴在它下面
 const setBarH = () => {
