@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>庄子 · 一则一画</title>
+<link rel="stylesheet" href="site.css">
+<style>
+  .topbar {
+    position: sticky; top: 0; z-index: 20; background: rgba(243,236,223,.94); backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(0,0,0,.08); display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  }
+  .topbar a.back { color: var(--ink2); text-decoration: none; font-size: 14px; white-space: nowrap; }
+  .topbar .t { flex: 1; text-align: center; font-family: var(--kai); font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar label { font-size: 13px; color: var(--ink2); display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 18px 80px; }
+  header.ch { text-align: center; padding: 40px 0 10px; }
+  header.ch .part { color: var(--ink3); letter-spacing: .3em; font-size: 13px; }
+  header.ch h1 { font-family: var(--kai); font-weight: normal; font-size: 54px; letter-spacing: .12em; margin: 8px 0; }
+  header.ch p { color: var(--ink2); line-height: 1.9; margin: 8px auto 0; max-width: 560px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 22px 0 10px; }
+  .toc a {
+    font-family: var(--kai); font-size: 15px; color: var(--ink); text-decoration: none; border: 1px solid rgba(0,0,0,.15);
+    border-radius: 999px; padding: 4px 12px; background: rgba(255,255,255,.35);
+  }
+  .toc a:hover { border-color: var(--red); color: var(--red); }
+
+  section.sec { padding-top: 26px; scroll-margin-top: 60px; }
+  section.sec h2 {
+    font-family: var(--kai); font-weight: normal; font-size: 26px; margin: 10px 0 6px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  }
+  section.sec h2 .no { color: var(--red); font-size: 15px; font-family: var(--song); }
+  section.sec h2 a.ill { font-family: var(--song); font-size: 13px; color: var(--red); border: 1px solid var(--red); border-radius: 999px; padding: 2px 10px; text-decoration: none; }
+  .sent { padding: 10px 0 10px 14px; border-left: 2px solid transparent; }
+  .sent:hover { border-left-color: rgba(178,58,42,.35); }
+  .o { font-family: var(--kai); font-size: 23px; line-height: 2.3; letter-spacing: .03em; }
+  .tr { font-size: 16px; line-height: 1.85; color: var(--ink2); }
+  .hide-tr .tr { display: none; }
+  .hide-py ruby rt { visibility: hidden; }
+
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 50px; border-top: 1px solid rgba(0,0,0,.1); padding-top: 20px; }
+  .pager a { color: var(--ink); text-decoration: none; font-family: var(--kai); font-size: 18px; }
+  .pager span { display: block; font-family: var(--song); font-size: 12px; color: var(--ink3); }
+  .err { text-align: center; padding: 80px 20px; color: var(--ink2); }
+
+  @media (max-width: 600px) {
+    header.ch h1 { font-size: 42px; }
+    .o { font-size: 21px; }
+    .topbar .t { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html">← 目录</a>
+  <div class="t" id="barTitle">庄子</div>
+  <label><input type="checkbox" id="pyChk" checked>注音</label>
+  <label><input type="checkbox" id="trChk" checked>白话</label>
+</div>
+<div class="wrap" id="main"></div>
+<div class="gloss" id="gloss"></div>
+<footer class="foot">原文：《庄子》维基文库本（公版） · 白话与注释为本站原创，AI 起稿，尚未逐条人工校对</footer>
+
+<script src="common.js"></script>
+<script>
+(async () => {
+  const main = document.getElementById("main");
+  const id = new URLSearchParams(location.search).get("c");
+  let idx, d;
+  try {
+    idx = await (await fetch("data/index.json")).json();
+    const meta = idx.find(c => c.key === id) || idx[0];
+    d = await (await fetch(`data/${meta.key}.json`)).json();
+    d.key = meta.key;
+  } catch (e) {
+    main.innerHTML = `<div class="err">这一篇还没做好，或者没找到。<br><a href="index.html">回目录</a></div>`;
+    return;
+  }
+  document.title = `${d.title} · 庄子`;
+  document.getElementById("barTitle").textContent = `${d.part} · ${d.title}`;
+
+  const pos = idx.findIndex(c => c.key === d.key);
+  const prev = idx[pos - 1], next = idx[pos + 1];
+  const link = c => `reader.html?c=${c.key}`;
+
+  main.innerHTML = `
+    <header class="ch">
+      <div class="part">${d.part} · 第 ${d.n} 篇</div>
+      <h1>${d.title}</h1>
+      <p>${d.intro}</p>
+      <nav class="toc">${d.sections.map((s, i) => `<a href="#s${i + 1}">${s.title}</a>`).join("")}</nav>
+    </header>
+    ${d.sections.map((s, i) => `
+      <section class="sec" id="s${i + 1}">
+        <h2><span class="no">${String(i + 1).padStart(2, "0")}</span>${s.title}
+          ${s.illustrated ? `<a class="ill" href="${s.illustrated}">插画朗读版 →</a>` : ""}</h2>
+        ${s.sents.map(x => `<div class="sent"><div class="o">${renderMarks(x.o)}</div><div class="tr">${x.t}</div></div>`).join("")}
+      </section>`).join("")}
+    <nav class="pager">
+      ${prev ? `<a href="${link(prev)}"><span>上一篇</span>${prev.title}</a>` : "<span></span>"}
+      ${next ? `<a href="${link(next)}" style="text-align:right"><span>下一篇</span>${next.title}</a>` : "<span></span>"}
+    </nav>`;
+  if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+  bindToggles();
+  bindGloss();
+})();
+</script>
+</body>
+</html>

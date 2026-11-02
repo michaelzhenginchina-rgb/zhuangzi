@@ -1,0 +1,36 @@
+:root {
+  --paper: #f3ecdf;
+  --paper2: #ebe2d1;
+  --ink: #1d1a17;
+  --ink2: #5a5148;
+  --ink3: #9a8f82;
+  --red: #b23a2a;
+  --gold: #c8962e;
+  --kai: "Kaiti SC", "STKaiti", "KaiTi", "BiauKai", serif;
+  --song: "Songti SC", "STSong", "Noto Serif SC", serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--song); }
+body {
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(0,0,0,.04), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgba(120,80,30,.06), transparent 50%);
+  min-height: 100vh;
+}
+ruby rt { font-family: "PingFang SC", -apple-system, sans-serif; font-size: 13px; font-weight: 500; color: #8a3b22; letter-spacing: .02em; }
+.w { border-bottom: 1.5px dotted var(--red); cursor: pointer; }
+.w.on { background: rgba(178,58,42,.12); border-radius: 3px; }
+
+/* 点词弹出的解释：电脑上贴在词下面，手机上从底部弹出 */
+.gloss {
+  position: fixed; z-index: 50; max-width: 300px; background: var(--ink); color: var(--paper);
+  padding: 10px 14px; border-radius: 10px; font-size: 15px; line-height: 1.65;
+  opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s; pointer-events: none;
+}
+.gloss.show { opacity: 1; transform: none; pointer-events: auto; }
+.gloss b { font-family: var(--kai); font-size: 19px; font-weight: normal; margin-right: 8px; }
+.gloss i { color: var(--gold); font-style: normal; font-size: 13px; }
+@media (max-width: 600px) {
+  .gloss { left: 12px !important; right: 12px; top: auto !important; bottom: 16px; max-width: none; font-size: 16px; padding: 14px 18px; }
+}
+.foot { text-align: center; color: var(--ink3); font-size: 12px; padding: 30px 16px 40px; line-height: 1.8; }
