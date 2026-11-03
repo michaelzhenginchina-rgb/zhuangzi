@@ -1,2 +1,9 @@
-voice-samples/
 .DS_Store
+__pycache__/
+.venv/
+voice-samples/
+# 生成物：EPUB 用 tools/build_epub.py 重新生成
+dist/
+# 视频成品和配乐太大，不进仓库；配乐出处写在 CLAUDE.md
+videos/*/out/
+videos/*/music/

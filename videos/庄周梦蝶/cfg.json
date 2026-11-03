@@ -1,0 +1,87 @@
+{
+ "out": "out/庄周梦蝶-白话讲解-配乐.mp4",
+ "title": "庄周梦蝶",
+ "voice_dir": "voice",
+ "script": "script.txt",
+ "shots": [
+  {
+   "media": "media/b01_hut_1.jpg",
+   "lines": [
+    "s01"
+   ],
+   "move": "in"
+  },
+  {
+   "media": "media/b02_sleep_2.jpg",
+   "lines": [
+    "s02"
+   ],
+   "move": "right"
+  },
+  {
+   "media": "media/b03_transform_2.jpg",
+   "lines": [
+    "s03"
+   ],
+   "move": "in"
+  },
+  {
+   "media": "media/b04_fly_video.mp4",
+   "lines": [
+    "s04"
+   ]
+  },
+  {
+   "media": "media/b04_fly_2.jpg",
+   "lines": [
+    "s05"
+   ],
+   "move": "right"
+  },
+  {
+   "media": "media/b05_wake_2.jpg",
+   "lines": [
+    "s06",
+    "s07"
+   ],
+   "move": "in"
+  },
+  {
+   "media": "media/b06_finger_1.jpg",
+   "lines": [
+    "s08",
+    "s09"
+   ],
+   "move": "out"
+  },
+  {
+   "media": "media/b07_mirror_2.jpg",
+   "lines": [
+    "s10",
+    "s11",
+    "s12"
+   ],
+   "move": "left"
+  },
+  {
+   "media": "media/b08_away_1.jpg",
+   "lines": [
+    "s13",
+    "s14"
+   ],
+   "move": "out"
+  },
+  {
+   "media": "media/b01_hut_2.jpg",
+   "lines": [
+    "s15"
+   ],
+   "move": "in"
+  }
+ ],
+ "music": {
+  "file": "music/guzheng_flute.mp3",
+  "start": 0,
+  "volume": 0.32
+ }
+}

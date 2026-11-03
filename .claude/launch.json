@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "zhuangzi",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5321",
+        "--directory",
+        "."
+      ],
+      "port": 5321
+    },
+    {
+      "name": "epubview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5322",
+        "--directory",
+        "/tmp/epubview/OEBPS"
+      ],
+      "port": 5322
+    }
+  ]
+}

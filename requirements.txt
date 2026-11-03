@@ -1,0 +1,4 @@
+lxml
+opencc-python-reimplemented
+pillow
+pypinyin
